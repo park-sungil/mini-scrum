@@ -58,6 +58,10 @@ async function loadTasks() {
 }
 
 function openCreateModal() {
+  if (!selectedSprintId.value) {
+    alert('스프린트를 먼저 생성해주세요. (스프린트 메뉴에서 추가)')
+    return
+  }
   editingTask.value = null
   form.value = { title: '', description: '', assignee_id: '', priority: 'medium', due_date: '', status: 'todo' }
   showModal.value = true

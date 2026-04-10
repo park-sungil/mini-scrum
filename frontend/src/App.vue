@@ -6,10 +6,10 @@ const route = useRoute()
 
 const navItems = [
   { path: '/', label: '대시보드', icon: '📊' },
+  { path: '/sprints', label: '스프린트', icon: '🏃' },
   { path: '/tasks', label: '업무 보드', icon: '📋' },
   { path: '/review', label: '주간 리뷰', icon: '📝' },
   { path: '/retro', label: '회고', icon: '💡' },
-  { path: '/sprints', label: '스프린트', icon: '🏃' },
   { path: '/members', label: '팀원', icon: '👥' },
 ]
 </script>

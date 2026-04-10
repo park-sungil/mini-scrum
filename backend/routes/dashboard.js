@@ -29,7 +29,7 @@ router.get('/', async (req, res) => {
          SUM(CASE WHEN status = 'in_progress' THEN 1 ELSE 0 END) AS in_progress,
          SUM(CASE WHEN status = 'done' THEN 1 ELSE 0 END) AS done
        FROM AT9.MINI_SCRUM_TASKS WHERE sprint_id = :sprint_id`,
-      { sprint_id: currentSprint.ID }
+      { sprint_id: currentSprint.id }
     )
     const taskSummary = summaryResult.rows[0]
 
@@ -43,7 +43,7 @@ router.get('/', async (req, res) => {
        LEFT JOIN AT9.MINI_SCRUM_TASKS t ON m.id = t.assignee_id AND t.sprint_id = :sprint_id
        GROUP BY m.id, m.name
        ORDER BY m.name`,
-      { sprint_id: currentSprint.ID }
+      { sprint_id: currentSprint.id }
     )
 
     res.json({
