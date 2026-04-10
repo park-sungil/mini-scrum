@@ -1,0 +1,54 @@
+-- Mini Scrum DB Schema (Oracle)
+
+-- 팀원
+CREATE TABLE members (
+  id NUMBER GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+  name VARCHAR2(100) NOT NULL,
+  role VARCHAR2(100),
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+-- 스프린트 (주 단위)
+CREATE TABLE sprints (
+  id NUMBER GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+  title VARCHAR2(200) NOT NULL,
+  goal VARCHAR2(1000),
+  start_date DATE NOT NULL,
+  end_date DATE NOT NULL,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+-- 업무
+CREATE TABLE tasks (
+  id NUMBER GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+  sprint_id NUMBER REFERENCES sprints(id),
+  title VARCHAR2(200) NOT NULL,
+  description VARCHAR2(2000),
+  assignee_id NUMBER REFERENCES members(id),
+  status VARCHAR2(20) DEFAULT 'todo',
+  priority VARCHAR2(10) DEFAULT 'medium',
+  due_date DATE,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+-- 주간 리뷰
+CREATE TABLE reviews (
+  id NUMBER GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+  sprint_id NUMBER REFERENCES sprints(id),
+  incomplete_reason VARCHAR2(2000),
+  blockers VARCHAR2(2000),
+  next_plan VARCHAR2(2000),
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+-- 회고 (KPT)
+CREATE TABLE retrospectives (
+  id NUMBER GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+  sprint_id NUMBER REFERENCES sprints(id),
+  member_id NUMBER REFERENCES members(id),
+  keep_items VARCHAR2(2000),
+  problem_items VARCHAR2(2000),
+  try_items VARCHAR2(2000),
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
