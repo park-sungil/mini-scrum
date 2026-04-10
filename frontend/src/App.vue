@@ -21,7 +21,7 @@ const navItems = [
       <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div class="flex items-center justify-between h-16">
           <div class="flex items-center gap-2">
-            <span class="text-xl font-bold text-indigo-600">Mini Scrum</span>
+            <router-link to="/" class="text-xl font-bold text-indigo-600 px-3 py-1.5 rounded-lg hover:bg-indigo-50 transition-colors">Mini Scrum</router-link>
           </div>
           <div class="flex items-center gap-1">
             <router-link
