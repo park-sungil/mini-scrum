@@ -24,7 +24,7 @@ function isActive(path) {
     <aside class="w-[220px] flex-shrink-0 flex flex-col fixed h-screen" style="background: var(--sidebar)">
       <!-- Logo -->
       <router-link to="/" class="block px-6 py-6 group">
-        <div class="font-display text-2xl text-white/90 group-hover:text-white transition-colors" style="font-style: italic">
+        <div class="font-display text-2xl text-white/90 group-hover:text-white transition-colors" style="">
           Mini Scrum
         </div>
         <div class="text-[10px] uppercase tracking-[3px] mt-0.5" style="color: var(--accent)">
