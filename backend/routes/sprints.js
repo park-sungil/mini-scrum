@@ -11,7 +11,7 @@ router.get('/', async (req, res) => {
               TO_CHAR(start_date, 'YYYY-MM-DD') AS start_date,
               TO_CHAR(end_date, 'YYYY-MM-DD') AS end_date,
               created_at
-       FROM sprints ORDER BY start_date DESC`
+       FROM AT9.MINI_SCRUM_SPRINTS ORDER BY start_date DESC`
     )
     res.json(result.rows)
   } catch (err) {
@@ -26,7 +26,7 @@ router.get('/current', async (req, res) => {
       `SELECT id, title, goal,
               TO_CHAR(start_date, 'YYYY-MM-DD') AS start_date,
               TO_CHAR(end_date, 'YYYY-MM-DD') AS end_date
-       FROM sprints
+       FROM AT9.MINI_SCRUM_SPRINTS
        WHERE start_date <= TRUNC(SYSDATE) AND end_date >= TRUNC(SYSDATE)
        ORDER BY start_date DESC
        FETCH FIRST 1 ROW ONLY`
@@ -42,7 +42,7 @@ router.post('/', async (req, res) => {
   try {
     const { title, goal, start_date, end_date } = req.body
     const result = await db.execute(
-      `INSERT INTO sprints (title, goal, start_date, end_date)
+      `INSERT INTO AT9.MINI_SCRUM_SPRINTS (title, goal, start_date, end_date)
        VALUES (:title, :goal, TO_DATE(:start_date, 'YYYY-MM-DD'), TO_DATE(:end_date, 'YYYY-MM-DD'))
        RETURNING id INTO :id`,
       {
@@ -64,7 +64,7 @@ router.put('/:id', async (req, res) => {
   try {
     const { title, goal, start_date, end_date } = req.body
     await db.execute(
-      `UPDATE sprints SET title = :title, goal = :goal,
+      `UPDATE AT9.MINI_SCRUM_SPRINTS SET title = :title, goal = :goal,
        start_date = TO_DATE(:start_date, 'YYYY-MM-DD'),
        end_date = TO_DATE(:end_date, 'YYYY-MM-DD')
        WHERE id = :id`,

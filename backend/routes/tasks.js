@@ -13,8 +13,8 @@ router.get('/', async (req, res) => {
               t.status, t.priority,
               TO_CHAR(t.due_date, 'YYYY-MM-DD') AS due_date,
               t.created_at, t.updated_at
-       FROM tasks t
-       LEFT JOIN members m ON t.assignee_id = m.id
+       FROM AT9.MINI_SCRUM_TASKS t
+       LEFT JOIN AT9.MINI_SCRUM_MEMBERS m ON t.assignee_id = m.id
        WHERE t.sprint_id = :sprint_id
        ORDER BY
          CASE t.priority WHEN 'high' THEN 1 WHEN 'medium' THEN 2 ELSE 3 END,
@@ -32,7 +32,7 @@ router.post('/', async (req, res) => {
   try {
     const { sprint_id, title, description, assignee_id, status, priority, due_date } = req.body
     const result = await db.execute(
-      `INSERT INTO tasks (sprint_id, title, description, assignee_id, status, priority, due_date)
+      `INSERT INTO AT9.MINI_SCRUM_TASKS (sprint_id, title, description, assignee_id, status, priority, due_date)
        VALUES (:sprint_id, :title, :description, :assignee_id, :status, :priority,
                CASE WHEN :due_date IS NOT NULL THEN TO_DATE(:due_date2, 'YYYY-MM-DD') ELSE NULL END)
        RETURNING id INTO :id`,
@@ -78,7 +78,7 @@ router.put('/:id', async (req, res) => {
     updates.push('updated_at = CURRENT_TIMESTAMP')
 
     await db.execute(
-      `UPDATE tasks SET ${updates.join(', ')} WHERE id = :id`,
+      `UPDATE AT9.MINI_SCRUM_TASKS SET ${updates.join(', ')} WHERE id = :id`,
       binds
     )
     res.json({ id: Number(req.params.id), ...req.body })
@@ -90,7 +90,7 @@ router.put('/:id', async (req, res) => {
 // DELETE /api/tasks/:id
 router.delete('/:id', async (req, res) => {
   try {
-    await db.execute('DELETE FROM tasks WHERE id = :id', { id: Number(req.params.id) })
+    await db.execute('DELETE FROM AT9.MINI_SCRUM_TASKS WHERE id = :id', { id: Number(req.params.id) })
     res.json({ success: true })
   } catch (err) {
     res.status(500).json({ error: err.message })

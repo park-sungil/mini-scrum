@@ -10,7 +10,7 @@ router.get('/', async (req, res) => {
       `SELECT id, title, goal,
               TO_CHAR(start_date, 'YYYY-MM-DD') AS start_date,
               TO_CHAR(end_date, 'YYYY-MM-DD') AS end_date
-       FROM sprints
+       FROM AT9.MINI_SCRUM_SPRINTS
        WHERE start_date <= TRUNC(SYSDATE) AND end_date >= TRUNC(SYSDATE)
        ORDER BY start_date DESC
        FETCH FIRST 1 ROW ONLY`
@@ -28,7 +28,7 @@ router.get('/', async (req, res) => {
          SUM(CASE WHEN status = 'todo' THEN 1 ELSE 0 END) AS todo,
          SUM(CASE WHEN status = 'in_progress' THEN 1 ELSE 0 END) AS in_progress,
          SUM(CASE WHEN status = 'done' THEN 1 ELSE 0 END) AS done
-       FROM tasks WHERE sprint_id = :sprint_id`,
+       FROM AT9.MINI_SCRUM_TASKS WHERE sprint_id = :sprint_id`,
       { sprint_id: currentSprint.ID }
     )
     const taskSummary = summaryResult.rows[0]
@@ -39,8 +39,8 @@ router.get('/', async (req, res) => {
               SUM(CASE WHEN t.status = 'todo' THEN 1 ELSE 0 END) AS todo,
               SUM(CASE WHEN t.status = 'in_progress' THEN 1 ELSE 0 END) AS in_progress,
               SUM(CASE WHEN t.status = 'done' THEN 1 ELSE 0 END) AS done
-       FROM members m
-       LEFT JOIN tasks t ON m.id = t.assignee_id AND t.sprint_id = :sprint_id
+       FROM AT9.MINI_SCRUM_MEMBERS m
+       LEFT JOIN AT9.MINI_SCRUM_TASKS t ON m.id = t.assignee_id AND t.sprint_id = :sprint_id
        GROUP BY m.id, m.name
        ORDER BY m.name`,
       { sprint_id: currentSprint.ID }

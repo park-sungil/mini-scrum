@@ -6,7 +6,7 @@ const db = require('../db/connection')
 router.get('/', async (req, res) => {
   try {
     const result = await db.execute(
-      'SELECT id, name, role, created_at FROM members ORDER BY id'
+      'SELECT id, name, role, created_at FROM AT9.MINI_SCRUM_MEMBERS ORDER BY id'
     )
     res.json(result.rows)
   } catch (err) {
@@ -19,7 +19,7 @@ router.post('/', async (req, res) => {
   try {
     const { name, role } = req.body
     const result = await db.execute(
-      `INSERT INTO members (name, role) VALUES (:name, :role) RETURNING id INTO :id`,
+      `INSERT INTO AT9.MINI_SCRUM_MEMBERS (name, role) VALUES (:name, :role) RETURNING id INTO :id`,
       {
         name,
         role: role || null,
@@ -37,7 +37,7 @@ router.put('/:id', async (req, res) => {
   try {
     const { name, role } = req.body
     await db.execute(
-      'UPDATE members SET name = :name, role = :role WHERE id = :id',
+      'UPDATE AT9.MINI_SCRUM_MEMBERS SET name = :name, role = :role WHERE id = :id',
       { name, role: role || null, id: Number(req.params.id) }
     )
     res.json({ id: Number(req.params.id), name, role })
@@ -49,7 +49,7 @@ router.put('/:id', async (req, res) => {
 // DELETE /api/members/:id
 router.delete('/:id', async (req, res) => {
   try {
-    await db.execute('DELETE FROM members WHERE id = :id', { id: Number(req.params.id) })
+    await db.execute('DELETE FROM AT9.MINI_SCRUM_MEMBERS WHERE id = :id', { id: Number(req.params.id) })
     res.json({ success: true })
   } catch (err) {
     res.status(500).json({ error: err.message })

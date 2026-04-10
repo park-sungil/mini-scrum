@@ -10,8 +10,8 @@ router.get('/', async (req, res) => {
     const result = await db.execute(
       `SELECT r.id, r.sprint_id, r.member_id, m.name AS member_name,
               r.keep_items, r.problem_items, r.try_items, r.created_at
-       FROM retrospectives r
-       LEFT JOIN members m ON r.member_id = m.id
+       FROM AT9.MINI_SCRUM_RETROSPECTIVES r
+       LEFT JOIN AT9.MINI_SCRUM_MEMBERS m ON r.member_id = m.id
        WHERE r.sprint_id = :sprint_id
        ORDER BY r.created_at`,
       { sprint_id: Number(sprint_id) }
@@ -27,7 +27,7 @@ router.post('/', async (req, res) => {
   try {
     const { sprint_id, member_id, keep_items, problem_items, try_items } = req.body
     const result = await db.execute(
-      `INSERT INTO retrospectives (sprint_id, member_id, keep_items, problem_items, try_items)
+      `INSERT INTO AT9.MINI_SCRUM_RETROSPECTIVES (sprint_id, member_id, keep_items, problem_items, try_items)
        VALUES (:sprint_id, :member_id, :keep_items, :problem_items, :try_items)
        RETURNING id INTO :id`,
       {
@@ -50,7 +50,7 @@ router.put('/:id', async (req, res) => {
   try {
     const { member_id, keep_items, problem_items, try_items } = req.body
     await db.execute(
-      `UPDATE retrospectives SET member_id = :member_id,
+      `UPDATE AT9.MINI_SCRUM_RETROSPECTIVES SET member_id = :member_id,
        keep_items = :keep_items, problem_items = :problem_items, try_items = :try_items
        WHERE id = :id`,
       {

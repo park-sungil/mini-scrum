@@ -9,8 +9,8 @@ router.get('/', async (req, res) => {
     const { sprint_id } = req.query
     let sql = `SELECT r.id, r.sprint_id, s.title AS sprint_title,
                       r.incomplete_reason, r.blockers, r.next_plan, r.created_at
-               FROM reviews r
-               LEFT JOIN sprints s ON r.sprint_id = s.id`
+               FROM AT9.MINI_SCRUM_REVIEWS r
+               LEFT JOIN AT9.MINI_SCRUM_SPRINTS s ON r.sprint_id = s.id`
     const binds = {}
 
     if (sprint_id) {
@@ -31,7 +31,7 @@ router.post('/', async (req, res) => {
   try {
     const { sprint_id, incomplete_reason, blockers, next_plan } = req.body
     const result = await db.execute(
-      `INSERT INTO reviews (sprint_id, incomplete_reason, blockers, next_plan)
+      `INSERT INTO AT9.MINI_SCRUM_REVIEWS (sprint_id, incomplete_reason, blockers, next_plan)
        VALUES (:sprint_id, :incomplete_reason, :blockers, :next_plan)
        RETURNING id INTO :id`,
       {
@@ -53,7 +53,7 @@ router.put('/:id', async (req, res) => {
   try {
     const { incomplete_reason, blockers, next_plan } = req.body
     await db.execute(
-      `UPDATE reviews SET incomplete_reason = :incomplete_reason,
+      `UPDATE AT9.MINI_SCRUM_REVIEWS SET incomplete_reason = :incomplete_reason,
        blockers = :blockers, next_plan = :next_plan
        WHERE id = :id`,
       {
