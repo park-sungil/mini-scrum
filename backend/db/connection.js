@@ -9,7 +9,7 @@ async function initialize() {
   pool = await oracledb.createPool({
     user: process.env.ORACLE_USER,
     password: process.env.ORACLE_PASSWORD,
-    connectString: process.env.ORACLE_CONNECT_STRING,
+    connectString: process.env.ORACLE_DSN,
   })
   console.log('Oracle DB pool created')
 }
