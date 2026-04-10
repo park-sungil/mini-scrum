@@ -1,5 +1,8 @@
 const oracledb = require('oracledb')
 
+// Use Thick mode (requires Oracle Instant Client)
+oracledb.initOracleClient()
+
 let pool
 
 async function initialize() {
