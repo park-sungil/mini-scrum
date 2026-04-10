@@ -21,6 +21,16 @@ async function close() {
   }
 }
 
+function lowercaseKeys(rows) {
+  return rows.map(row => {
+    const obj = {}
+    for (const key of Object.keys(row)) {
+      obj[key.toLowerCase()] = row[key]
+    }
+    return obj
+  })
+}
+
 async function execute(sql, binds = [], opts = {}) {
   const conn = await pool.getConnection()
   try {
@@ -29,6 +39,9 @@ async function execute(sql, binds = [], opts = {}) {
       autoCommit: true,
       ...opts,
     })
+    if (result.rows) {
+      result.rows = lowercaseKeys(result.rows)
+    }
     return result
   } finally {
     await conn.close()
