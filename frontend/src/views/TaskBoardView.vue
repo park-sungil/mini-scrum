@@ -20,9 +20,9 @@ const form = ref({
 })
 
 const columns = [
-  { key: 'todo', label: '할 일', color: 'blue' },
-  { key: 'in_progress', label: '진행 중', color: 'amber' },
-  { key: 'done', label: '완료', color: 'green' },
+  { key: 'todo', label: '할 일', color: 'var(--info)', lightColor: 'var(--info-light)' },
+  { key: 'in_progress', label: '진행 중', color: 'var(--warning)', lightColor: 'var(--warning-light)' },
+  { key: 'done', label: '완료', color: 'var(--success)', lightColor: 'var(--success-light)' },
 ]
 
 const tasksByStatus = computed(() => {
@@ -113,7 +113,11 @@ function getMemberName(id) {
 }
 
 const priorityLabels = { high: '높음', medium: '보통', low: '낮음' }
-const priorityColors = { high: 'text-red-600 bg-red-50', medium: 'text-amber-600 bg-amber-50', low: 'text-slate-600 bg-slate-50' }
+const priorityStyles = {
+  high: { background: 'var(--danger-light)', color: 'var(--danger)' },
+  medium: { background: 'var(--warning-light)', color: 'var(--warning)' },
+  low: { background: 'var(--bg)', color: 'var(--text-muted)' },
+}
 
 function onDragStart(event, task) {
   event.dataTransfer.setData('taskId', task.id)
@@ -129,88 +133,82 @@ async function onDrop(event, status) {
 
 <template>
   <div>
-    <div class="flex items-center justify-between mb-6">
-      <h1 class="text-2xl font-bold text-slate-900">업무 보드</h1>
+    <div class="flex items-center justify-between mb-8">
+      <div>
+        <h1 class="font-display text-4xl" style="color: var(--text); font-style: italic">Task Board</h1>
+        <p class="text-sm mt-1" style="color: var(--text-muted)">업무 보드</p>
+      </div>
       <div class="flex items-center gap-3">
-        <select
-          v-model="selectedSprintId"
-          @change="loadTasks"
-          class="border border-slate-300 rounded-lg px-3 py-2 text-sm bg-white"
-        >
+        <select v-model="selectedSprintId" @change="loadTasks" class="input" style="width: auto">
           <option v-for="s in sprints" :key="s.id" :value="s.id">{{ s.title }}</option>
         </select>
-        <button
-          @click="openCreateModal"
-          class="bg-indigo-600 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-indigo-700 transition-colors"
-        >
-          + 업무 추가
-        </button>
+        <button @click="openCreateModal" class="btn-primary">+ 업무 추가</button>
       </div>
     </div>
 
-    <div v-if="loading" class="text-center py-12 text-slate-500">로딩 중...</div>
+    <div v-if="loading" class="text-center py-20" style="color: var(--text-muted)">
+      <div class="inline-block w-6 h-6 border-2 border-current border-t-transparent rounded-full animate-spin"></div>
+    </div>
 
-    <div v-else class="grid grid-cols-1 md:grid-cols-3 gap-6">
+    <div v-else class="grid grid-cols-3 gap-5">
       <div
         v-for="col in columns"
         :key="col.key"
-        class="bg-slate-100 rounded-xl p-4 min-h-[400px]"
+        class="rounded-xl p-4 min-h-[450px]"
+        :style="{ background: col.lightColor }"
         @dragover.prevent
         @drop="onDrop($event, col.key)"
       >
-        <h2 class="text-sm font-semibold text-slate-600 uppercase tracking-wide mb-3 flex items-center gap-2">
-          <span
-            :class="{
-              'bg-blue-500': col.color === 'blue',
-              'bg-amber-500': col.color === 'amber',
-              'bg-green-500': col.color === 'green',
-            }"
-            class="w-2.5 h-2.5 rounded-full"
-          ></span>
-          {{ col.label }}
-          <span class="text-slate-400 font-normal">({{ tasksByStatus[col.key].length }})</span>
-        </h2>
+        <div class="flex items-center gap-2 mb-4 px-1">
+          <div class="w-2 h-2 rounded-full" :style="{ background: col.color }"></div>
+          <h2 class="text-xs font-bold uppercase tracking-wider" :style="{ color: col.color }">
+            {{ col.label }}
+          </h2>
+          <span class="font-mono text-xs" style="color: var(--text-muted)">{{ tasksByStatus[col.key].length }}</span>
+        </div>
 
-        <div class="space-y-3">
+        <div class="space-y-2.5">
           <div
             v-for="task in tasksByStatus[col.key]"
             :key="task.id"
             draggable="true"
             @dragstart="onDragStart($event, task)"
-            class="bg-white rounded-lg p-4 shadow-sm border border-slate-200 cursor-grab hover:shadow-md transition-shadow"
+            class="card p-4 cursor-grab active:cursor-grabbing"
+            style="border-radius: 10px"
           >
             <div class="flex items-start justify-between mb-2">
-              <h3 class="font-medium text-slate-800 text-sm">{{ task.title }}</h3>
-              <div class="flex gap-1">
-                <button @click="openEditModal(task)" class="text-slate-400 hover:text-slate-600 text-xs">수정</button>
-                <button @click="deleteTask(task.id)" class="text-slate-400 hover:text-red-500 text-xs">삭제</button>
+              <h3 class="font-semibold text-[13px] leading-tight" style="color: var(--text)">{{ task.title }}</h3>
+              <div class="flex gap-1.5 ml-2 flex-shrink-0">
+                <button @click="openEditModal(task)" class="text-[11px]" style="color: var(--text-muted)" onmouseover="this.style.color='var(--accent)'" onmouseout="this.style.color='var(--text-muted)'">수정</button>
+                <button @click="deleteTask(task.id)" class="text-[11px]" style="color: var(--text-muted)" onmouseover="this.style.color='var(--danger)'" onmouseout="this.style.color='var(--text-muted)'">삭제</button>
               </div>
             </div>
-            <p v-if="task.description" class="text-xs text-slate-500 mb-2">{{ task.description }}</p>
+            <p v-if="task.description" class="text-xs mb-2.5 leading-relaxed" style="color: var(--text-muted)">{{ task.description }}</p>
             <div class="flex items-center gap-2 flex-wrap">
-              <span :class="priorityColors[task.priority]" class="text-xs px-2 py-0.5 rounded-full">
-                {{ priorityLabels[task.priority] }}
-              </span>
-              <span v-if="task.assignee_id" class="text-xs text-slate-500">
-                {{ getMemberName(task.assignee_id) }}
-              </span>
-              <span v-if="task.due_date" class="text-xs text-slate-400">{{ task.due_date }}</span>
+              <span class="badge" :style="priorityStyles[task.priority]">{{ priorityLabels[task.priority] }}</span>
+              <span v-if="task.assignee_id" class="text-[11px] font-medium" style="color: var(--text-secondary)">{{ getMemberName(task.assignee_id) }}</span>
+              <span v-if="task.due_date" class="font-mono text-[11px]" style="color: var(--text-muted)">{{ task.due_date }}</span>
             </div>
-            <!-- Status change buttons -->
-            <div class="flex gap-1 mt-2">
+            <div class="flex gap-1.5 mt-2.5">
               <button
                 v-if="col.key !== 'todo'"
                 @click="changeStatus(task.id, col.key === 'done' ? 'in_progress' : 'todo')"
-                class="text-xs text-slate-400 hover:text-slate-600 bg-slate-50 px-2 py-1 rounded"
+                class="text-[11px] font-medium px-2 py-1 rounded-md transition-colors"
+                style="color: var(--text-muted); background: var(--bg)"
+                onmouseover="this.style.color='var(--text-secondary)'"
+                onmouseout="this.style.color='var(--text-muted)'"
               >
-                ← {{ col.key === 'done' ? '진행 중' : '할 일' }}
+                &larr; {{ col.key === 'done' ? '진행 중' : '할 일' }}
               </button>
               <button
                 v-if="col.key !== 'done'"
                 @click="changeStatus(task.id, col.key === 'todo' ? 'in_progress' : 'done')"
-                class="text-xs text-slate-400 hover:text-slate-600 bg-slate-50 px-2 py-1 rounded"
+                class="text-[11px] font-medium px-2 py-1 rounded-md transition-colors"
+                style="color: var(--text-muted); background: var(--bg)"
+                onmouseover="this.style.color='var(--text-secondary)'"
+                onmouseout="this.style.color='var(--text-muted)'"
               >
-                {{ col.key === 'todo' ? '진행 중' : '완료' }} →
+                {{ col.key === 'todo' ? '진행 중' : '완료' }} &rarr;
               </button>
             </div>
           </div>
@@ -219,31 +217,31 @@ async function onDrop(event, status) {
     </div>
 
     <!-- Modal -->
-    <div v-if="showModal" class="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-      <div class="bg-white rounded-xl shadow-xl p-6 w-full max-w-lg mx-4">
-        <h2 class="text-lg font-semibold text-slate-900 mb-4">
-          {{ editingTask ? '업무 수정' : '새 업무 추가' }}
+    <div v-if="showModal" class="modal-backdrop">
+      <div class="modal-content" style="max-width: 520px">
+        <h2 class="font-display text-2xl mb-5" style="font-style: italic; color: var(--text)">
+          {{ editingTask ? '업무 수정' : '새 업무' }}
         </h2>
         <form @submit.prevent="saveTask" class="space-y-4">
           <div>
-            <label class="block text-sm font-medium text-slate-700 mb-1">제목 *</label>
-            <input v-model="form.title" required class="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm" />
+            <label class="label">제목 *</label>
+            <input v-model="form.title" required class="input" />
           </div>
           <div>
-            <label class="block text-sm font-medium text-slate-700 mb-1">설명</label>
-            <textarea v-model="form.description" rows="3" class="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm"></textarea>
+            <label class="label">설명</label>
+            <textarea v-model="form.description" rows="3" class="input"></textarea>
           </div>
           <div class="grid grid-cols-2 gap-4">
             <div>
-              <label class="block text-sm font-medium text-slate-700 mb-1">담당자 *</label>
-              <select v-model="form.assignee_id" required class="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm">
+              <label class="label">담당자 *</label>
+              <select v-model="form.assignee_id" required class="input">
                 <option value="" disabled>선택하세요</option>
                 <option v-for="m in members" :key="m.id" :value="m.id">{{ m.name }}</option>
               </select>
             </div>
             <div>
-              <label class="block text-sm font-medium text-slate-700 mb-1">우선순위</label>
-              <select v-model="form.priority" class="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm">
+              <label class="label">우선순위</label>
+              <select v-model="form.priority" class="input">
                 <option value="high">높음</option>
                 <option value="medium">보통</option>
                 <option value="low">낮음</option>
@@ -252,23 +250,21 @@ async function onDrop(event, status) {
           </div>
           <div class="grid grid-cols-2 gap-4">
             <div>
-              <label class="block text-sm font-medium text-slate-700 mb-1">마감일</label>
-              <input v-model="form.due_date" type="date" class="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm" />
+              <label class="label">마감일</label>
+              <input v-model="form.due_date" type="date" class="input" />
             </div>
             <div v-if="editingTask">
-              <label class="block text-sm font-medium text-slate-700 mb-1">상태</label>
-              <select v-model="form.status" class="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm">
+              <label class="label">상태</label>
+              <select v-model="form.status" class="input">
                 <option value="todo">할 일</option>
                 <option value="in_progress">진행 중</option>
                 <option value="done">완료</option>
               </select>
             </div>
           </div>
-          <div class="flex justify-end gap-3 pt-2">
-            <button type="button" @click="showModal = false" class="px-4 py-2 text-sm text-slate-600 hover:text-slate-800">취소</button>
-            <button type="submit" class="bg-indigo-600 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-indigo-700">
-              {{ editingTask ? '수정' : '추가' }}
-            </button>
+          <div class="flex justify-end gap-3 pt-3">
+            <button type="button" @click="showModal = false" class="btn-ghost">취소</button>
+            <button type="submit" class="btn-primary">{{ editingTask ? '수정' : '추가' }}</button>
           </div>
         </form>
       </div>
