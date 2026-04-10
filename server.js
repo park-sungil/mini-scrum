@@ -14,7 +14,7 @@ app.use('/api', apiRouter)
 
 // Serve Vue frontend (built files)
 app.use(express.static(path.join(__dirname, 'app', 'dist')))
-app.get('*', (req, res) => {
+app.get('{*path}', (req, res) => {
   res.sendFile(path.join(__dirname, 'app', 'dist', 'index.html'))
 })
 
