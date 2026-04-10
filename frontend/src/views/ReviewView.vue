@@ -52,6 +52,9 @@ async function loadReviewData() {
 const completedTasks = () => tasks.value.filter(t => t.status === 'done')
 const incompleteTasks = () => tasks.value.filter(t => t.status !== 'done')
 
+const priorityLabels = { high: '높음', medium: '보통', low: '낮음' }
+const priorityColors = { high: 'text-red-600 bg-red-50', medium: 'text-amber-600 bg-amber-50', low: 'text-slate-600 bg-slate-50' }
+
 async function saveReview() {
   const data = {
     sprint_id: selectedSprintId.value,
@@ -103,10 +106,19 @@ function getCurrentSprint() {
         <h2 class="text-lg font-semibold text-green-700 mb-3">완료한 업무 ({{ completedTasks().length }})</h2>
         <div v-if="completedTasks().length === 0" class="text-slate-400 text-sm">완료된 업무가 없습니다.</div>
         <ul class="space-y-2">
-          <li v-for="task in completedTasks()" :key="task.id" class="flex items-center gap-2 text-sm">
+          <li v-for="task in completedTasks()" :key="task.id" class="relative group flex items-center gap-2 text-sm">
             <span class="text-green-500">✓</span>
-            <span class="text-slate-700">{{ task.title }}</span>
+            <span class="text-slate-700 cursor-pointer underline decoration-dotted hover:text-slate-900">{{ task.title }}</span>
             <span v-if="task.assignee_name" class="text-slate-400">- {{ task.assignee_name }}</span>
+            <div class="hidden group-hover:block absolute left-0 top-full mt-1 z-10 bg-white border border-slate-200 rounded-lg shadow-lg p-4 w-72">
+              <div class="text-sm font-medium text-slate-800 mb-2">{{ task.title }}</div>
+              <p v-if="task.description" class="text-xs text-slate-500 mb-2">{{ task.description }}</p>
+              <div class="flex flex-wrap gap-2 text-xs">
+                <span v-if="task.assignee_name" class="bg-slate-100 px-2 py-0.5 rounded">{{ task.assignee_name }}</span>
+                <span class="px-2 py-0.5 rounded" :class="priorityColors[task.priority]">{{ priorityLabels[task.priority] }}</span>
+                <span v-if="task.due_date" class="bg-slate-100 px-2 py-0.5 rounded">마감: {{ task.due_date }}</span>
+              </div>
+            </div>
           </li>
         </ul>
       </div>
@@ -116,13 +128,22 @@ function getCurrentSprint() {
         <h2 class="text-lg font-semibold text-amber-700 mb-3">미완료 업무 ({{ incompleteTasks().length }})</h2>
         <div v-if="incompleteTasks().length === 0" class="text-slate-400 text-sm">모든 업무가 완료되었습니다!</div>
         <ul class="space-y-2">
-          <li v-for="task in incompleteTasks()" :key="task.id" class="flex items-center gap-2 text-sm">
+          <li v-for="task in incompleteTasks()" :key="task.id" class="relative group flex items-center gap-2 text-sm">
             <span class="text-amber-500">○</span>
-            <span class="text-slate-700">{{ task.title }}</span>
+            <span class="text-slate-700 cursor-pointer underline decoration-dotted hover:text-slate-900">{{ task.title }}</span>
             <span class="text-xs px-2 py-0.5 rounded-full"
               :class="task.status === 'in_progress' ? 'bg-amber-50 text-amber-600' : 'bg-blue-50 text-blue-600'">
               {{ task.status === 'in_progress' ? '진행 중' : '할 일' }}
             </span>
+            <div class="hidden group-hover:block absolute left-0 top-full mt-1 z-10 bg-white border border-slate-200 rounded-lg shadow-lg p-4 w-72">
+              <div class="text-sm font-medium text-slate-800 mb-2">{{ task.title }}</div>
+              <p v-if="task.description" class="text-xs text-slate-500 mb-2">{{ task.description }}</p>
+              <div class="flex flex-wrap gap-2 text-xs">
+                <span v-if="task.assignee_name" class="bg-slate-100 px-2 py-0.5 rounded">{{ task.assignee_name }}</span>
+                <span class="px-2 py-0.5 rounded" :class="priorityColors[task.priority]">{{ priorityLabels[task.priority] }}</span>
+                <span v-if="task.due_date" class="bg-slate-100 px-2 py-0.5 rounded">마감: {{ task.due_date }}</span>
+              </div>
+            </div>
           </li>
         </ul>
       </div>

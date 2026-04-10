@@ -81,8 +81,11 @@ function openEditModal(task) {
 }
 
 async function saveTask() {
+  if (!form.value.assignee_id) {
+    alert('담당자를 선택해주세요.')
+    return
+  }
   const data = { ...form.value, sprint_id: selectedSprintId.value }
-  if (!data.assignee_id) data.assignee_id = null
   if (!data.due_date) data.due_date = null
 
   if (editingTask.value) {
@@ -232,9 +235,9 @@ async function onDrop(event, status) {
           </div>
           <div class="grid grid-cols-2 gap-4">
             <div>
-              <label class="block text-sm font-medium text-slate-700 mb-1">담당자</label>
-              <select v-model="form.assignee_id" class="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm">
-                <option value="">미지정</option>
+              <label class="block text-sm font-medium text-slate-700 mb-1">담당자 *</label>
+              <select v-model="form.assignee_id" required class="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm">
+                <option value="" disabled>선택하세요</option>
                 <option v-for="m in members" :key="m.id" :value="m.id">{{ m.name }}</option>
               </select>
             </div>
