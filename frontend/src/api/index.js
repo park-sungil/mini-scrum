@@ -24,6 +24,7 @@ export const api = {
   getCurrentSprint: () => request('/sprints/current'),
   createSprint: (data) => request('/sprints', { method: 'POST', body: JSON.stringify(data) }),
   updateSprint: (id, data) => request(`/sprints/${id}`, { method: 'PUT', body: JSON.stringify(data) }),
+  deleteSprint: (id) => request(`/sprints/${id}`, { method: 'DELETE' }),
 
   // Tasks
   getTasks: (sprintId) => request(`/tasks?sprint_id=${sprintId}`),

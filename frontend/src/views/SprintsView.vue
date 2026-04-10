@@ -50,12 +50,22 @@ function openEditModal(sprint) {
 }
 
 async function saveSprint() {
-  if (editingSprint.value) {
-    await api.updateSprint(editingSprint.value.id, form.value)
-  } else {
-    await api.createSprint(form.value)
+  try {
+    if (editingSprint.value) {
+      await api.updateSprint(editingSprint.value.id, form.value)
+    } else {
+      await api.createSprint(form.value)
+    }
+    showModal.value = false
+    sprints.value = await api.getSprints()
+  } catch (e) {
+    alert(e.message || '스프린트 저장에 실패했습니다.')
   }
-  showModal.value = false
+}
+
+async function deleteSprint(id) {
+  if (!confirm('이 스프린트와 관련된 업무, 리뷰, 회고가 모두 삭제됩니다. 계속하시겠습니까?')) return
+  await api.deleteSprint(id)
   sprints.value = await api.getSprints()
 }
 
@@ -104,7 +114,10 @@ function isCurrentSprint(sprint) {
             <p v-if="sprint.goal" class="text-sm text-slate-600 mb-2">{{ sprint.goal }}</p>
             <p class="text-sm text-slate-400">{{ sprint.start_date }} ~ {{ sprint.end_date }}</p>
           </div>
-          <button @click="openEditModal(sprint)" class="text-sm text-indigo-600 hover:text-indigo-800">수정</button>
+          <div class="flex gap-2">
+            <button @click="openEditModal(sprint)" class="text-sm text-indigo-600 hover:text-indigo-800">수정</button>
+            <button @click="deleteSprint(sprint.id)" class="text-sm text-red-500 hover:text-red-700">삭제</button>
+          </div>
         </div>
       </div>
     </div>

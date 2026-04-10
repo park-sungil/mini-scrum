@@ -41,6 +41,20 @@ router.get('/current', async (req, res) => {
 router.post('/', async (req, res) => {
   try {
     const { title, goal, start_date, end_date } = req.body
+
+    // Check for overlapping sprints
+    const overlap = await db.execute(
+      `SELECT id, title FROM AT9.MINI_SCRUM_SPRINTS
+       WHERE start_date <= TO_DATE(:end_date, 'YYYY-MM-DD')
+         AND end_date >= TO_DATE(:start_date, 'YYYY-MM-DD')`,
+      { start_date, end_date }
+    )
+    if (overlap.rows.length > 0) {
+      return res.status(400).json({
+        error: `기간이 겹치는 스프린트가 있습니다: "${overlap.rows[0].title}"`
+      })
+    }
+
     const result = await db.execute(
       `INSERT INTO AT9.MINI_SCRUM_SPRINTS (title, goal, start_date, end_date)
        VALUES (:title, :goal, TO_DATE(:start_date, 'YYYY-MM-DD'), TO_DATE(:end_date, 'YYYY-MM-DD'))
@@ -63,6 +77,21 @@ router.post('/', async (req, res) => {
 router.put('/:id', async (req, res) => {
   try {
     const { title, goal, start_date, end_date } = req.body
+
+    // Check for overlapping sprints (exclude self)
+    const overlap = await db.execute(
+      `SELECT id, title FROM AT9.MINI_SCRUM_SPRINTS
+       WHERE start_date <= TO_DATE(:end_date, 'YYYY-MM-DD')
+         AND end_date >= TO_DATE(:start_date, 'YYYY-MM-DD')
+         AND id != :id`,
+      { start_date, end_date, id: Number(req.params.id) }
+    )
+    if (overlap.rows.length > 0) {
+      return res.status(400).json({
+        error: `기간이 겹치는 스프린트가 있습니다: "${overlap.rows[0].title}"`
+      })
+    }
+
     await db.execute(
       `UPDATE AT9.MINI_SCRUM_SPRINTS SET title = :title, goal = :goal,
        start_date = TO_DATE(:start_date, 'YYYY-MM-DD'),
@@ -71,6 +100,21 @@ router.put('/:id', async (req, res) => {
       { title, goal: goal || null, start_date, end_date, id: Number(req.params.id) }
     )
     res.json({ id: Number(req.params.id), title, goal, start_date, end_date })
+  } catch (err) {
+    res.status(500).json({ error: err.message })
+  }
+})
+
+// DELETE /api/sprints/:id
+router.delete('/:id', async (req, res) => {
+  try {
+    const id = Number(req.params.id)
+    // Delete related data first (tasks, reviews, retrospectives)
+    await db.execute('DELETE FROM AT9.MINI_SCRUM_RETROSPECTIVES WHERE sprint_id = :id', { id })
+    await db.execute('DELETE FROM AT9.MINI_SCRUM_REVIEWS WHERE sprint_id = :id', { id })
+    await db.execute('DELETE FROM AT9.MINI_SCRUM_TASKS WHERE sprint_id = :id', { id })
+    await db.execute('DELETE FROM AT9.MINI_SCRUM_SPRINTS WHERE id = :id', { id })
+    res.json({ success: true })
   } catch (err) {
     res.status(500).json({ error: err.message })
   }
