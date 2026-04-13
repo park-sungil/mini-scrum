@@ -1,8 +1,11 @@
 <script setup>
-import { ref, computed } from 'vue'
+import { ref, computed, watch } from 'vue'
 import { store, api } from '../store'
 
-const selectedSprintId = ref(null)
+const selectedSprintId = ref(store.sprints[0]?.id || null)
+watch(() => store.sprints, (sprints) => {
+  if (!selectedSprintId.value && sprints.length) selectedSprintId.value = sprints[0].id
+})
 const showModal = ref(false)
 const editingTask = ref(null)
 const form = ref({ title: '', description: '', assignee_id: '', priority: 'medium', due_date: '', status: 'todo' })

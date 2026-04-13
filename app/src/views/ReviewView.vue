@@ -1,8 +1,11 @@
 <script setup>
-import { ref, computed } from 'vue'
+import { ref, computed, watch } from 'vue'
 import { store, api } from '../store'
 
 const selectedSprintId = ref(store.sprints[0]?.id || null)
+watch(() => store.sprints, (sprints) => {
+  if (!selectedSprintId.value && sprints.length) selectedSprintId.value = sprints[0].id
+})
 const editing = ref(false)
 const form = ref({ incomplete_reason: '', blockers: '', next_plan: '' })
 
