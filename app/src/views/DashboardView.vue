@@ -1,6 +1,6 @@
 <script setup>
-import { computed } from 'vue'
-import { store } from '../store'
+import { ref, computed } from 'vue'
+import { store, api } from '../store'
 
 const today = new Date()
 const dateStr = today.toLocaleDateString('ko-KR', { year: 'numeric', month: 'long', day: 'numeric', weekday: 'long' })
@@ -36,6 +36,27 @@ const memberTasks = computed(() =>
     }
   })
 )
+
+// Rules
+const showRuleInput = ref(false)
+const editingRule = ref(null)
+const ruleForm = ref('')
+
+function startAddRule() { ruleForm.value = ''; editingRule.value = null; showRuleInput.value = true }
+function startEditRule(rule) { ruleForm.value = rule.content; editingRule.value = rule; showRuleInput.value = true }
+function cancelRule() { showRuleInput.value = false; editingRule.value = null; ruleForm.value = '' }
+
+async function saveRule() {
+  if (!ruleForm.value.trim()) return
+  if (editingRule.value) await api.updateRule(editingRule.value.id, { content: ruleForm.value.trim() })
+  else await api.createRule({ content: ruleForm.value.trim() })
+  cancelRule()
+}
+
+async function deleteRule(id) {
+  if (!confirm('이 규칙을 삭제하시겠습니까?')) return
+  await api.deleteRule(id)
+}
 </script>
 
 <template>
@@ -50,6 +71,7 @@ const memberTasks = computed(() =>
     </div>
 
     <div v-else class="space-y-6 animate-in">
+      <!-- Sprint Info -->
       <div class="card p-6" v-if="currentSprint">
         <div class="flex items-center justify-between mb-4">
           <div>
@@ -75,6 +97,7 @@ const memberTasks = computed(() =>
         <p class="text-sm" style="color: var(--text-muted)">스프린트 메뉴에서 새 스프린트를 생성하세요.</p>
       </div>
 
+      <!-- Stats -->
       <div v-if="currentSprint" class="grid grid-cols-4 gap-4">
         <div class="card p-5 text-center">
           <div class="font-mono text-3xl font-bold" style="color: var(--text)">{{ taskSummary.total }}</div>
@@ -94,6 +117,7 @@ const memberTasks = computed(() =>
         </div>
       </div>
 
+      <!-- Member Tasks -->
       <div v-if="memberTasks.length" class="card p-6">
         <h2 class="text-xs font-semibold uppercase tracking-wider mb-4" style="color: var(--text-secondary)">팀원별 현황</h2>
         <div class="space-y-3">
@@ -104,18 +128,49 @@ const memberTasks = computed(() =>
             </div>
             <div class="flex-1 min-w-0">
               <div class="font-semibold text-sm" style="color: var(--text)">{{ member.name }}</div>
-              <div class="flex gap-1 mt-1.5">
-                <div v-for="n in member.todo" :key="'t'+n" class="w-5 h-1.5 rounded-full" style="background: var(--info-light)"></div>
-                <div v-for="n in member.in_progress" :key="'p'+n" class="w-5 h-1.5 rounded-full" style="background: var(--warning-light)"></div>
-                <div v-for="n in member.done" :key="'d'+n" class="w-5 h-1.5 rounded-full" style="background: var(--success)"></div>
-              </div>
             </div>
-            <div class="flex gap-4 text-xs font-mono flex-shrink-0">
-              <span style="color: var(--info)">{{ member.todo }}</span>
-              <span style="color: var(--warning)">{{ member.in_progress }}</span>
-              <span style="color: var(--success)">{{ member.done }}</span>
+            <div class="flex gap-4 text-xs flex-shrink-0">
+              <span style="color: var(--info)">할 일 <strong class="font-mono">{{ member.todo }}</strong></span>
+              <span style="color: var(--warning)">진행 <strong class="font-mono">{{ member.in_progress }}</strong></span>
+              <span style="color: var(--success)">완료 <strong class="font-mono">{{ member.done }}</strong></span>
             </div>
           </div>
+        </div>
+      </div>
+
+      <!-- Team Rules -->
+      <div class="card p-6">
+        <div class="flex items-center justify-between mb-4">
+          <h2 class="text-xs font-semibold uppercase tracking-wider" style="color: var(--text-secondary)">팀 규칙</h2>
+          <button v-if="!showRuleInput" @click="startAddRule" class="text-xs font-medium" style="color: var(--accent); cursor: pointer">+ 추가</button>
+        </div>
+
+        <div v-if="!store.rules.length && !showRuleInput" class="text-sm" style="color: var(--text-muted)">
+          등록된 규칙이 없습니다. 팀 규칙을 추가하세요.
+        </div>
+
+        <ul class="space-y-2.5">
+          <li v-for="(rule, i) in store.rules" :key="rule.id" class="flex items-start gap-3 group animate-in" :style="{ animationDelay: (i * 0.03) + 's' }">
+            <span class="font-mono text-xs font-bold mt-0.5 flex-shrink-0" style="color: var(--accent)">{{ i + 1 }}.</span>
+            <span class="text-sm flex-1 leading-relaxed" style="color: var(--text)">{{ rule.content }}</span>
+            <div class="hidden group-hover:flex gap-2 flex-shrink-0">
+              <button @click="startEditRule(rule)" class="text-[11px]" style="color: var(--text-muted)" onmouseover="this.style.color='var(--accent)'" onmouseout="this.style.color='var(--text-muted)'">수정</button>
+              <button @click="deleteRule(rule.id)" class="text-[11px]" style="color: var(--text-muted)" onmouseover="this.style.color='var(--danger)'" onmouseout="this.style.color='var(--text-muted)'">삭제</button>
+            </div>
+          </li>
+        </ul>
+
+        <!-- Add/Edit input -->
+        <div v-if="showRuleInput" class="mt-3 flex gap-2">
+          <input
+            v-model="ruleForm"
+            @keyup.enter="saveRule"
+            class="input flex-1"
+            :placeholder="editingRule ? '규칙 수정...' : '새 규칙 입력...'"
+            autofocus
+          />
+          <button @click="saveRule" class="btn-primary" style="padding: 8px 14px">{{ editingRule ? '수정' : '추가' }}</button>
+          <button @click="cancelRule" class="btn-ghost" style="padding: 8px 14px">취소</button>
         </div>
       </div>
     </div>

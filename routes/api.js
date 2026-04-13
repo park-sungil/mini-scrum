@@ -6,7 +6,7 @@ const oracledb = require('oracledb')
 // GET /api/data — returns ALL data at once
 router.get('/data', async (req, res) => {
   try {
-    const [members, sprints, tasks, reviews, retros] = await Promise.all([
+    const [members, sprints, tasks, reviews, retros, rules] = await Promise.all([
       db.execute('SELECT id, name, role, created_at FROM AT9.MINI_SCRUM_MEMBERS ORDER BY id'),
       db.execute(`SELECT id, title, goal,
         TO_CHAR(start_date, 'YYYY-MM-DD') AS start_date,
@@ -30,6 +30,7 @@ router.get('/data', async (req, res) => {
         FROM AT9.MINI_SCRUM_RETROSPECTIVES r
         LEFT JOIN AT9.MINI_SCRUM_MEMBERS m ON r.member_id = m.id
         ORDER BY r.created_at`),
+      db.execute('SELECT id, content, created_at FROM AT9.MINI_SCRUM_RULES ORDER BY created_at'),
     ])
     res.json({
       members: members.rows,
@@ -37,6 +38,7 @@ router.get('/data', async (req, res) => {
       tasks: tasks.rows,
       reviews: reviews.rows,
       retros: retros.rows,
+      rules: rules.rows,
     })
   } catch (err) {
     res.status(500).json({ error: err.message })
@@ -260,6 +262,42 @@ router.put('/retros/:id', async (req, res) => {
        keep_items = :keep_items, problem_items = :problem_items, try_items = :try_items WHERE id = :id`,
       { member_id: member_id ? Number(member_id) : null, keep_items: keep_items || null, problem_items: problem_items || null, try_items: try_items || null, id: Number(req.params.id) }
     )
+    res.json({ success: true })
+  } catch (err) {
+    res.status(500).json({ error: err.message })
+  }
+})
+
+// --- Rules ---
+router.post('/rules', async (req, res) => {
+  try {
+    const { content } = req.body
+    const result = await db.execute(
+      'INSERT INTO AT9.MINI_SCRUM_RULES (content) VALUES (:content) RETURNING id INTO :id',
+      { content, id: { dir: oracledb.BIND_OUT, type: oracledb.NUMBER } }
+    )
+    res.status(201).json({ id: result.outBinds.id[0] })
+  } catch (err) {
+    res.status(500).json({ error: err.message })
+  }
+})
+
+router.put('/rules/:id', async (req, res) => {
+  try {
+    const { content } = req.body
+    await db.execute(
+      'UPDATE AT9.MINI_SCRUM_RULES SET content = :content WHERE id = :id',
+      { content, id: Number(req.params.id) }
+    )
+    res.json({ success: true })
+  } catch (err) {
+    res.status(500).json({ error: err.message })
+  }
+})
+
+router.delete('/rules/:id', async (req, res) => {
+  try {
+    await db.execute('DELETE FROM AT9.MINI_SCRUM_RULES WHERE id = :id', { id: Number(req.params.id) })
     res.json({ success: true })
   } catch (err) {
     res.status(500).json({ error: err.message })

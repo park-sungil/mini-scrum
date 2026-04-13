@@ -20,6 +20,7 @@ export const store = reactive({
   tasks: [],
   reviews: [],
   retros: [],
+  rules: [],
   loaded: false,
   loading: false,
 })
@@ -34,6 +35,7 @@ export async function loadAll() {
     store.tasks = data.tasks
     store.reviews = data.reviews
     store.retros = data.retros
+    store.rules = data.rules
     store.loaded = true
   } finally {
     store.loading = false
@@ -70,4 +72,9 @@ export const api = {
   // Retros
   createRetro: (data) => mutate('/retros', { method: 'POST', body: JSON.stringify(data) }),
   updateRetro: (id, data) => mutate(`/retros/${id}`, { method: 'PUT', body: JSON.stringify(data) }),
+
+  // Rules
+  createRule: (data) => mutate('/rules', { method: 'POST', body: JSON.stringify(data) }),
+  updateRule: (id, data) => mutate(`/rules/${id}`, { method: 'PUT', body: JSON.stringify(data) }),
+  deleteRule: (id) => mutate(`/rules/${id}`, { method: 'DELETE' }),
 }
