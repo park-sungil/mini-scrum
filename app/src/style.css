@@ -42,7 +42,8 @@ h1, h2, h3 {
 }
 
 .font-display {
-  font-family: 'DM Serif Display', Georgia, serif;
+  font-family: 'Sora', system-ui, sans-serif;
+  font-weight: 700;
 }
 
 .font-mono {
