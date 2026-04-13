@@ -13,9 +13,12 @@ app.use(express.json())
 app.use('/api', apiRouter)
 
 // Serve Vue frontend (built files)
-app.use(express.static(path.join(__dirname, 'app', 'dist')))
-app.get('{*path}', (req, res) => {
-  res.sendFile(path.join(__dirname, 'app', 'dist', 'index.html'))
+const distPath = path.join(__dirname, 'app', 'dist')
+app.use(express.static(distPath))
+
+// SPA fallback — serve index.html for all non-API routes
+app.use((req, res) => {
+  res.sendFile(path.join(distPath, 'index.html'))
 })
 
 async function start() {
