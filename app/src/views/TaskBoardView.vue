@@ -90,7 +90,7 @@ async function onDrop(e, s) { const id = e.dataTransfer.getData('taskId'); if (i
                 <button @click="deleteTask(task.id)" class="text-[11px]" style="color: var(--text-muted)" onmouseover="this.style.color='var(--danger)'" onmouseout="this.style.color='var(--text-muted)'">삭제</button>
               </div>
             </div>
-            <p v-if="task.description" class="text-xs mb-2.5 leading-relaxed whitespace-pre-wrap" style="color: var(--text-muted)">{{ task.description }}</p>
+            <p v-if="task.description" class="text-xs mb-2.5 leading-relaxed whitespace-pre-wrap break-words" style="color: var(--text-muted)">{{ task.description }}</p>
             <div class="flex items-center gap-2 flex-wrap">
               <span class="badge" :style="priorityStyles[task.priority]">{{ priorityLabels[task.priority] }}</span>
               <span v-if="task.assignee_id" class="text-[11px] font-medium" style="color: var(--text-secondary)">{{ getMemberName(task.assignee_id) }}</span>
