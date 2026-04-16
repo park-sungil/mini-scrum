@@ -47,14 +47,29 @@ const futureSprints = computed(() => {
 
 // Per-task target sprint selection
 const carryTargets = ref({})
+const openCarryId = ref(null)
+
 function getTarget(taskId) {
   return carryTargets.value[taskId] ?? futureSprints.value[0]?.id ?? ''
 }
 
-async function carryOverTask(task) {
+function openCarry(taskId) {
+  if (!futureSprints.value.length) {
+    alert('이동할 다음 스프린트가 없습니다. 스프린트를 먼저 생성하세요.')
+    return
+  }
+  openCarryId.value = taskId
+}
+
+function cancelCarry() {
+  openCarryId.value = null
+}
+
+async function confirmCarry(task) {
   const targetId = getTarget(task.id)
-  if (!targetId) { alert('이동할 다음 스프린트가 없습니다. 스프린트를 먼저 생성하세요.'); return }
+  if (!targetId) return
   await api.updateTask(task.id, { sprint_id: Number(targetId) })
+  openCarryId.value = null
 }
 </script>
 
@@ -118,22 +133,27 @@ async function carryOverTask(task) {
                 <span class="badge" :style="task.status === 'in_progress' ? { background: 'var(--warning-light)', color: 'var(--warning)' } : { background: 'var(--info-light)', color: 'var(--info)' }">{{ task.status === 'in_progress' ? '진행 중' : '할 일' }}</span>
               </div>
               <!-- Carry-over controls -->
-              <div v-if="futureSprints.length" class="flex items-center gap-2 ml-6 mt-1.5">
-                <select
-                  :value="getTarget(task.id)"
-                  @change="carryTargets[task.id] = $event.target.value"
-                  class="input"
-                  style="width: auto; padding: 4px 8px; font-size: 11px"
-                >
-                  <option v-for="s in futureSprints" :key="s.id" :value="s.id">{{ s.title }}</option>
-                </select>
+              <div class="ml-6 mt-1.5">
                 <button
-                  @click="carryOverTask(task)"
+                  v-if="openCarryId !== task.id"
+                  @click="openCarry(task.id)"
                   class="text-[11px] font-medium px-2.5 py-1 rounded-md"
                   style="color: var(--accent); background: var(--accent-light)"
                 >
-                  이동 →
+                  다음 스프린트로 이동 →
                 </button>
+                <div v-else class="flex items-center gap-2">
+                  <select
+                    :value="getTarget(task.id)"
+                    @change="carryTargets[task.id] = $event.target.value"
+                    class="input"
+                    style="width: auto; padding: 4px 8px; font-size: 11px"
+                  >
+                    <option v-for="s in futureSprints" :key="s.id" :value="s.id">{{ s.title }}</option>
+                  </select>
+                  <button @click="confirmCarry(task)" class="text-[11px] font-medium px-2.5 py-1 rounded-md" style="color: white; background: var(--accent)">확정</button>
+                  <button @click="cancelCarry" class="text-[11px] font-medium px-2.5 py-1 rounded-md" style="color: var(--text-muted); background: var(--bg)">취소</button>
+                </div>
               </div>
             </li>
           </ul>
