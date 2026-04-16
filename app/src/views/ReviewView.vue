@@ -37,6 +37,25 @@ async function saveReview() {
   else await api.createReview(data)
   editing.value = false
 }
+
+// Carry-over: future sprints = sprints starting after the current sprint's end_date
+const futureSprints = computed(() => {
+  if (!currentSprint.value) return []
+  return store.sprints.filter(s => s.start_date > currentSprint.value.end_date)
+    .sort((a, b) => a.start_date.localeCompare(b.start_date))
+})
+
+// Per-task target sprint selection
+const carryTargets = ref({})
+function getTarget(taskId) {
+  return carryTargets.value[taskId] ?? futureSprints.value[0]?.id ?? ''
+}
+
+async function carryOverTask(task) {
+  const targetId = getTarget(task.id)
+  if (!targetId) { alert('이동할 다음 스프린트가 없습니다. 스프린트를 먼저 생성하세요.'); return }
+  await api.updateTask(task.id, { sprint_id: Number(targetId) })
+}
 </script>
 
 <template>
@@ -91,20 +110,30 @@ async function saveReview() {
             <h2 class="text-xs font-bold uppercase tracking-wider" style="color: var(--warning)">미완료 ({{ incompleteTasks.length }})</h2>
           </div>
           <div v-if="!incompleteTasks.length" class="text-xs" style="color: var(--success)">모든 업무가 완료되었습니다!</div>
-          <ul class="space-y-2.5">
+          <ul class="space-y-3">
             <li v-for="task in incompleteTasks" :key="task.id" class="relative group">
-              <div class="flex items-center gap-2 text-sm">
+              <div class="flex items-center gap-2 text-sm flex-wrap">
                 <div class="w-4 h-4 rounded-full border-2 flex-shrink-0" style="border-color: var(--warning)"></div>
                 <span style="color: var(--text)">{{ task.title }}</span>
                 <span class="badge" :style="task.status === 'in_progress' ? { background: 'var(--warning-light)', color: 'var(--warning)' } : { background: 'var(--info-light)', color: 'var(--info)' }">{{ task.status === 'in_progress' ? '진행 중' : '할 일' }}</span>
               </div>
-              <div class="hidden group-hover:block absolute left-0 top-full mt-1 z-10 p-4 w-72 rounded-xl" style="background: white; border: 1px solid var(--border); box-shadow: 0 8px 30px rgba(0,0,0,0.1)">
-                <div class="text-sm font-semibold mb-1" style="color: var(--text)">{{ task.title }}</div>
-                <p v-if="task.description" class="text-xs mb-2" style="color: var(--text-muted)">{{ task.description }}</p>
-                <div class="flex flex-wrap gap-1.5">
-                  <span v-if="task.assignee_name" class="badge" style="background: var(--bg); color: var(--text-secondary)">{{ task.assignee_name }}</span>
-                  <span class="badge" :style="priorityStyles[task.priority]">{{ priorityLabels[task.priority] }}</span>
-                </div>
+              <!-- Carry-over controls -->
+              <div v-if="futureSprints.length" class="flex items-center gap-2 ml-6 mt-1.5">
+                <select
+                  :value="getTarget(task.id)"
+                  @change="carryTargets[task.id] = $event.target.value"
+                  class="input"
+                  style="width: auto; padding: 4px 8px; font-size: 11px"
+                >
+                  <option v-for="s in futureSprints" :key="s.id" :value="s.id">{{ s.title }}</option>
+                </select>
+                <button
+                  @click="carryOverTask(task)"
+                  class="text-[11px] font-medium px-2.5 py-1 rounded-md"
+                  style="color: var(--accent); background: var(--accent-light)"
+                >
+                  이동 →
+                </button>
               </div>
             </li>
           </ul>
