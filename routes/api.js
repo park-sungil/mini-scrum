@@ -100,16 +100,6 @@ router.post('/sprints', async (req, res) => {
 router.put('/sprints/:id', async (req, res) => {
   try {
     const { title, goal, start_date, end_date } = req.body
-    const overlap = await db.execute(
-      `SELECT id, title FROM AT9.MINI_SCRUM_SPRINTS
-       WHERE start_date <= TO_DATE(:end_date, 'YYYY-MM-DD')
-         AND end_date >= TO_DATE(:start_date, 'YYYY-MM-DD')
-         AND id != :id`,
-      { start_date, end_date, id: Number(req.params.id) }
-    )
-    if (overlap.rows.length > 0) {
-      return res.status(400).json({ error: `기간이 겹치는 스프린트가 있습니다: "${overlap.rows[0].title}"` })
-    }
     await db.execute(
       `UPDATE AT9.MINI_SCRUM_SPRINTS SET title = :title, goal = :goal,
        start_date = TO_DATE(:start_date, 'YYYY-MM-DD'), end_date = TO_DATE(:end_date, 'YYYY-MM-DD')
